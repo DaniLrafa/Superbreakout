@@ -39,12 +39,21 @@ sw = 1280
 sh = 720
 screen_size = (sw,sh)
 
+screen = pygame.display.set_mode(screen_size)
+
+background = pygame.image.load(r"C:\Users\rafal\OneDrive\Escritorio\Progra 2\SuperBreakout\bg.jpg").convert()
+PL_image = pygame.image.load(r"C:\Users\rafal\OneDrive\Escritorio\Progra 2\SuperBreakout\Breakout_PL.png").convert()
+
+#definir los fps
+#
+clock = pygame.time.Clock()
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-        #Controls
-        #
+    #Controls
+    #
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_a:
                 SPX = -8
@@ -78,18 +87,15 @@ while True:
     BALLX += SBALLX
     BALLY += SBALLY
 
-    #definir los fps
-    #
-    screen = pygame.display.set_mode(screen_size)
-    clock = pygame.time.Clock()
+    screen.blit(background, [0,0])
+    PL = screen.blit(PL_image, [PX,PY])
 
     #------------Draw
     BALL = pygame.draw.rect(screen,WHITE,(BALLX,BALLY,20,20))
-    PL = pygame.draw.rect(screen,GREY,(PX,PY,PW,PH))
     #------------Draw
 
     #actualizar
     #
     pygame.display.flip()
     clock.tick(60)
-    pass
+    pass    
