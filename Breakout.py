@@ -14,9 +14,16 @@ ORANGE = (255,127,0)
 RED = (255,0,0)
 GREY = (65,65,65)
 
+# Fuente para el texto
+font = pygame.font.SysFont(None, 40)
+
 #variables
 #
 HOLD = 0
+Inicio = False  
+Gameover = False  
+score = 0
+
 #player size
 #
 PH = 20
@@ -42,34 +49,38 @@ screen_size = (sw,sh)
 screen = pygame.display.set_mode(screen_size)
 
 background = pygame.image.load(r"C:\Users\rafal\OneDrive\Escritorio\Progra 2\SuperBreakout\bg.jpg").convert()
-background.set_alpha(128)
+background.set_alpha(60)
 PL_image = pygame.image.load(r"C:\Users\rafal\OneDrive\Escritorio\Progra 2\SuperBreakout\Breakout_PL.png").convert()
 
 #definir los fps
 #
 clock = pygame.time.Clock()
 
+# Tamaño de las losas
+#
 rw = 50
-rh = 50
+rh = 20
 margen = 10 
-columna = sw
-fila = sh
 
+#acomodo de las losas
+#
+num_filas = 6
+num_columnas = 20
 
-# List to hold rectangle objects
-Losas = []
+# Función para Dibujar las losas
+#
+def crearlosas():
+    losas = []
+    for fila in range(num_filas):
+        for columna in range(num_columnas):
+            x = columna * (rw + margen) + 35
+            y = fila * (rh + margen) + 35
+            vida = num_filas - fila  # Las losas de la fila superior tienen más vidas
+            losa_rect = pygame.Rect(x, y, rw, rh)
+            losas.append({'rect': losa_rect, 'vida': vida})
+    return losas
 
-# Function to create rectangles in a grid layout
-def CrearLosas():
-    for row in range(fila):
-        for col in range(columna):
-            x = col * (rw + margen)
-            y = row * (rh + margen)
-            rectangulo = pygame.Rect(x, y, rw, rh)
-            Losas.append(rectangulo)
-
-# Create the grid of rectangles
-CrearLosas()
+losas = crearlosas()
 
 while True:
     for event in pygame.event.get():
@@ -86,6 +97,10 @@ while True:
                 if event.key == pygame.K_SPACE:
                     SBALLY = -8
                     HOLD = 1
+                    Inicio = True
+                    if Gameover == True:
+                        score = 0
+                    Gameover = False
             if HOLD == 0:
                 if event.key == pygame.K_a:
                     SBALLX = -8
@@ -131,13 +146,66 @@ while True:
 
     #------------Draw
     BALL = pygame.draw.rect(screen,WHITE,(BALLX,BALLY,20,20))
-    
     #------------Draw
 
-    #
+    #Hitbox del jugador
     #
     if BALL.colliderect(PL):
         SBALLY *= -1
+        if SBALLX == 0:
+            SBALLX += 5
+
+    #Creamos las losas
+    #
+    for losa in losas[:]:
+        color = PURPLE if losa['vida'] == 1 else BLUE if losa['vida'] == 2 else GREEN if losa['vida'] == 3 else YELLOW if losa['vida'] == 4 else ORANGE if losa['vida'] == 5 else RED            
+        pygame.draw.rect(screen, color, losa['rect'])
+    
+    #Hitbox de las losas
+    #
+    for losa in losas[:]:
+        if BALL.colliderect(losa['rect']):
+            SBALLY *= -1
+            losa['vida'] -= 1 
+            if losa['vida'] <= 0:
+                losas.remove(losa)  
+                score += 10  
+
+    #Gameover
+    #
+    if BALLY > sh:
+        Gameover = True
+        Inicio= False
+        HOLD = 0
+        SBALLX = 0
+        SBALLY = 0
+        BALLX = 605
+        BALLY = 580
+        PX = 550
+
+    if Gameover:
+        perdiste = font.render("Game Over presiona ESPACIO para reiniciar", True, WHITE)
+        screen.blit(perdiste, (sw // 2 - 250, sh // 2))
+
+    #Si se rompen todas las losas
+    #
+    if len(losas) == 0:
+        losas = crearlosas()
+        game_started = False
+        HOLD = 0
+        BALLX = 605
+        BALLY = 580
+        PX = 550
+
+    #mensaje de inicio
+    #
+    if not Inicio and not Gameover:
+        textitoinicio = font.render("Presiona ESPACIO para empezar", True, WHITE)
+        screen.blit(textitoinicio, (sw // 2 - 200, sh // 2))
+
+    # Mostrar la puntuación
+    textitopuntos = font.render(f"Score: {score}", True, WHITE)
+    screen.blit(textitopuntos, (10, 10))
 
     #actualizar
     #
